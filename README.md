@@ -117,4 +117,4 @@ Custom rules can be placed in `rules/` alongside the default ruleset.
 
 ## License
 
-MIT License
+GPL-3.0

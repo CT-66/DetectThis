@@ -1,19 +1,27 @@
 :root {
-  --bg: #14171a;
-  --panel: #1b1f23;
-  --panel-2: #21262b;
-  --border: #2c3238;
-  --text: #e7eaec;
-  --muted: #8f98a1;
-  --muted-2: #626a72;
+  /*Nord palette*/
+  /* Polar Night (backgrounds) */
+  --bg: #2e3440; /* nord0 */
+  --panel: #3b4252; /* nord1 */
+  --panel-2: #434c5e; /* nord2 */
+  --border: #4c566a; /* nord3 */
 
-  --amber: #e8a33d;
-  --amber-dim: #4a3a1e;
-  --red: #c1443a;
-  --red-dim: #3a211e;
-  --green: #4f9d6e;
-  --green-dim: #1e3327;
-  --steel: #5c8aa6;
+  /* Snow Storm (text) */
+  --text: #eceff4; /* nord6 */
+  --muted: #d8dee9; /* nord4 */
+  --muted-2: #4c566a; /* nord3 */
+
+  /* Aurora (accents) */
+  --amber: #ebcb8b; /* nord13 */
+  --amber-dim: rgba(235, 203, 139, 0.14);
+  --red: #bf616a; /* nord11 */
+  --red-dim: rgba(191, 97, 106, 0.14);
+  --green: #a3be8c; /* nord14 */
+  --green-dim: rgba(163, 190, 140, 0.14);
+
+  /* Frost (info / secondary accents) */
+  --steel: #81a1c1; /* nord9 */
+  --on-accent: #2e3440; /* nord0 */
 
   --font-head: "Barlow Condensed", sans-serif;
   --font-body: "Inter", -apple-system, sans-serif;
@@ -160,7 +168,7 @@ h2 {
 .btn-primary {
   width: 100%;
   background: var(--amber);
-  color: #1a1205;
+  color: var(--on-accent);
   border: none;
   font-family: var(--font-body);
   font-weight: 600;
@@ -251,33 +259,16 @@ h2 {
 }
 .flash-error {
   background: var(--red-dim);
-  color: #f2b3ad;
+  color: var(--red);
   border: 1px solid var(--red);
 }
 
 .hero {
-  max-width: 640px;
-  margin: 4vh 0 48px;
+  max-width: 860px;
+  margin: 4vh auto 48px;
 }
 .hero-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   margin-bottom: 18px;
-}
-.hero-mark {
-  width: 48px;
-  height: 48px;
-  background: var(--amber);
-  color: #1a1205;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  flex-shrink: 0;
 }
 .hero-title {
   font-family: var(--font-head);
@@ -336,7 +327,8 @@ h2 {
 }
 
 .home-dash {
-  max-width: 920px;
+  max-width: 860px;
+  margin: 0 auto;
 }
 .home-head h2 {
   font-size: 22px;
@@ -466,7 +458,7 @@ h2 {
 }
 .verdict-badge.sev-mal {
   background: var(--red-dim);
-  color: #f2b3ad;
+  color: var(--red);
 }
 .verdict-badge.sev-sus {
   background: var(--amber-dim);
@@ -592,7 +584,7 @@ h2 {
   margin-bottom: 20px;
 }
 .panel-escalate h2 {
-  color: #f2b3ad;
+  color: var(--red);
 }
 .panel-escalate ul {
   margin: 0;
@@ -791,7 +783,7 @@ h2 {
 .tag-high,
 .tag-critical {
   background: var(--red-dim);
-  color: #f2b3ad;
+  color: var(--red);
 }
 .tag-medium {
   background: var(--amber-dim);
