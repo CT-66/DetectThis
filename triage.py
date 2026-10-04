@@ -17,6 +17,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
     import yara
 except ImportError:
     yara = None
@@ -90,7 +96,7 @@ def run_yara(data: bytes, rules_dir: Path) -> dict:
     matches = []
     for m in rules.match(data=data):
         try:
-            ids = sorted({s.identifier for s in m.strings})  # yara-python >= 4.3
+            ids = sorted({s.identifier for s in m.strings})
         except AttributeError:
             ids = sorted({s[1] for s in m.strings})
         matches.append(
@@ -192,7 +198,6 @@ def extract_iocs(strings: dict) -> dict:
     }
 
 
-# Suspicious API names
 SUSPICIOUS_APIS = {
     "process_injection": ["VirtualAllocEx", "WriteProcessMemory", "CreateRemoteThread",
                           "NtUnmapViewOfSection", "QueueUserAPC", "SetThreadContext",
@@ -263,7 +268,8 @@ def analyze_pe(data: bytes) -> dict:
         "imports": imports,
     }
 
-# 6. VirusTotal
+
+# 6. VirusTotal (hash lookup only -- the file is NEVER uploaded)
 class VirusTotal:
     BASE = "https://www.virustotal.com/api/v3/files/"
 
@@ -574,7 +580,7 @@ def main():
         if not f.is_file():
             print(f"skip: {f} is not a file", file=sys.stderr)
             continue
-        os.chmod(f, os.stat(f).st_mode & ~0o111)  # strip execute bits
+        os.chmod(f, os.stat(f).st_mode & ~0o111)
         report = analyze(f, args)
         stem = write_reports(report, out_dir)
         print_summary(report, stem, out_dir)

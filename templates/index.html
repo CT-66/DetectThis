@@ -1,11 +1,69 @@
-{% extends "layout.html" %}
-{% block content %}
+{% extends "layout.html" %} {% block content %} {% if reports %}
+<div class="home-dash">
+  <div class="home-head">
+    <h1>Overview</h1>
+    <p class="muted">
+      {{ reports|length }} sample{{ 's' if reports|length != 1 }} analyzed.
+      Select one from the queue, or upload a new one, to see full results.
+    </p>
+  </div>
+
+  <div class="stat-card-grid">
+    <div class="stat-card">
+      <span class="sc-value">{{ reports|length }}</span>
+      <span class="sc-label">Total analyzed</span>
+    </div>
+    <div class="stat-card sc-mal">
+      <span class="sc-value">{{ tally.confirmed }}</span>
+      <span class="sc-label">Confirmed malicious</span>
+    </div>
+    <div class="stat-card sc-mal">
+      <span class="sc-value">{{ tally.likely }}</span>
+      <span class="sc-label">Likely malicious</span>
+    </div>
+    <div class="stat-card sc-sus">
+      <span class="sc-value">{{ tally.suspicious }}</span>
+      <span class="sc-label">Suspicious</span>
+    </div>
+    <div class="stat-card sc-ok">
+      <span class="sc-value">{{ tally.clean }}</span>
+      <span class="sc-label">No detection</span>
+    </div>
+    <div class="stat-card sc-esc">
+      <span class="sc-value">{{ tally.escalate }}</span>
+      <span class="sc-label">Flagged to escalate</span>
+    </div>
+  </div>
+
+  <div class="home-hint panel">
+    <strong>Static analysis only.</strong> ClamAV signatures, YARA rules,
+    string/IOC extraction, and a VirusTotal hash lookup &mdash; the sample's
+    bytes are never executed at any stage.
+  </div>
+</div>
+{% else %}
 <div class="empty-state">
   <div class="empty-mark">&#8942;</div>
-  <h1>Nothing selected</h1>
-  <p>Upload a suspicious file from the left, or pick a past run from the queue,
-     to see its hashes, scan results, and extracted indicators.</p>
-  <p class="empty-hint">Static analysis only &mdash; ClamAV signatures, YARA rules,
-     string/IOC extraction, and a VirusTotal hash lookup. The sample is never executed.</p>
+  <h1>Nothing analyzed yet</h1>
+  <p>Upload a suspicious file from the left to get started.</p>
+
+  <ol class="empty-steps">
+    <li>
+      <strong>Upload</strong> &mdash; drop a file, or tick "Offline mode" to
+      skip the VirusTotal lookup.
+    </li>
+    <li>
+      <strong>Scan</strong> &mdash; ClamAV, YARA, and string/IOC extraction run
+      automatically, read-only.
+    </li>
+    <li>
+      <strong>Review</strong> &mdash; get a scored verdict, extracted
+      indicators, and a blocklist-ready export.
+    </li>
+  </ol>
+
+  <p class="empty-hint">
+    Static analysis only &mdash; the sample is never executed at any stage.
+  </p>
 </div>
-{% endblock %}
+{% endif %} {% endblock %}

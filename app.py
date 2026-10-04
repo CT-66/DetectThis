@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import os
 import shutil
 import types
@@ -6,6 +7,12 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, send_file, url_for
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 import triage
 
@@ -77,7 +84,21 @@ def inject_status():
 
 @app.route("/")
 def index():
-    return render_template("index.html", reports=list_reports(), vt_configured=bool(os.environ.get("VT_API_KEY")))
+    reports = list_reports()
+    tally = {"confirmed": 0, "likely": 0, "suspicious": 0, "clean": 0, "escalate": 0}
+    for r in reports:
+        label = r["label"]
+        if "CONFIRMED" in label:
+            tally["confirmed"] += 1
+        elif "LIKELY" in label:
+            tally["likely"] += 1
+        elif "SUSPICIOUS" in label:
+            tally["suspicious"] += 1
+        else:
+            tally["clean"] += 1
+        if r["escalate"]:
+            tally["escalate"] += 1
+    return render_template("index.html", reports=reports, tally=tally, vt_configured=bool(os.environ.get("VT_API_KEY")))
 
 
 @app.route("/analyze", methods=["POST"])
@@ -119,12 +140,29 @@ def report_detail(stem):
         with open(csv_path) as f:
             blocklist_rows = list(csv_mod.DictReader(f))
 
+    score_pct = min(report["verdict"]["score"], 10) / 10 * 100
+
+    vt_ring = None
+    vt = report.get("virustotal", {})
+    if vt.get("status") == "found":
+        total = vt.get("total_engines") or 1
+        malicious = vt.get("stats", {}).get("malicious", 0)
+        ratio = malicious / total
+        circumference = round(2 * math.pi * 20, 2)  # r=20
+        vt_ring = {
+            "circumference": circumference,
+            "dash": round(ratio * circumference, 2),
+            "color": "var(--red)" if ratio >= 0.25 else ("var(--amber)" if ratio > 0 else "var(--green)"),
+        }
+
     return render_template(
         "report.html",
         r=report,
         stem=safe_stem,
         reports=list_reports(),
         blocklist_rows=blocklist_rows,
+        score_pct=score_pct,
+        vt_ring=vt_ring,
         vt_configured=bool(os.environ.get("VT_API_KEY")),
     )
 

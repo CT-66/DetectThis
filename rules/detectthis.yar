@@ -81,6 +81,67 @@ rule Suspicious_Persistence_Run_Key
         uint16(0) == 0x5A4D and all of them
 }
 
+rule RAT_Keylogger_Webcam_Combo
+{
+    meta:
+        description = "Keylogging APIs combined with webcam-capture APIs"
+        severity    = "high"
+        why         = "A near-universal RAT/stealer combo: log keystrokes AND grab webcam access. Legitimate software rarely needs both together."
+        false_pos   = "Accessibility tools, some legitimate remote-support or parental-control software"
+    strings:
+        $key1 = "GetAsyncKeyState" ascii wide
+        $key2 = "GetKeyboardState"  ascii wide
+        $cam1 = "avicap32.dll"      ascii wide nocase
+        $cam2 = "capGetDriverDescriptionA" ascii wide
+    condition:
+        1 of ($key*) and 1 of ($cam*)
+}
+
+rule Firewall_Self_Allowlist_Evasion
+{
+    meta:
+        description = "Sample adds itself to the Windows Firewall's allowed-programs list via netsh"
+        severity    = "high"
+        why         = "Malware commonly self-allowlists to avoid outbound-connection prompts/blocks; legitimate installers rarely do this silently at runtime"
+        false_pos   = "Some legitimate networked applications configure firewall rules during install"
+    strings:
+        $add = "netsh firewall add allowedprogram" ascii wide nocase
+        $del = "netsh firewall delete allowedprogram" ascii wide nocase
+    condition:
+        any of them
+}
+
+rule MOTW_Zone_Bypass
+{
+    meta:
+        description = "SEE_MASK_NOZONECHECKS flag -- suppresses the Windows 'file downloaded from the internet' security warning"
+        severity    = "medium"
+        why         = "A common Mark-of-the-Web bypass technique used to launch a dropped/downloaded file without the usual OS warning"
+        false_pos   = "Some legitimate installers and update tools use this flag too"
+    strings:
+        $s = "SEE_MASK_NOZONECHECKS" ascii wide
+    condition:
+        $s
+}
+
+rule DotNet_Loader_Decode_Decompress
+{
+    meta:
+        description = ".NET executable combined with base64/compression/hashing APIs typical of a stage-2 downloader or loader stub"
+        severity    = "medium"
+        why         = "A .NET binary that decodes, decompresses, and hashes data at runtime is a common shape for a loader that decrypts a second-stage payload from an embedded or downloaded blob"
+        false_pos   = "Legitimate .NET applications that handle compressed or encoded data (installers, update clients, some utilities)"
+    strings:
+        $net1 = "mscoree.dll" ascii wide
+        $net2 = "_CorExeMain" ascii wide
+        $b64a = "FromBase64String" ascii wide
+        $b64b = "ToBase64String"   ascii wide
+        $gz   = "GZipStream"       ascii wide
+        $md5  = "MD5CryptoServiceProvider" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 1 of ($net*) and 2 of ($b64a, $b64b, $gz, $md5)
+}
+
 rule DetectThis_Canary_Sample
 {
     meta:

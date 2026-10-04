@@ -1,30 +1,51 @@
-{% extends "layout.html" %}
-{% block title %}{{ r.file.name }} &middot; DetectThis{% endblock %}
-
-{% block content %}
-{% set v = r.verdict %}
-{% set sev = v.label|sevclass %}
+{% extends "layout.html" %} {% block title %}{{ r.file.name }} &middot;
+DetectThis{% endblock %} {% block content %} {% set v = r.verdict %} {% set sev
+= v.label|sevclass %}
 
 <div class="verdict-banner {{ sev }}">
   <div class="verdict-top">
     <div class="verdict-main">
-      <span class="verdict-label">{{ v.label }}</span>
-      <span class="verdict-score">score {{ v.score }}</span>
+      <span class="verdict-badge {{ sev }}">
+        <span class="verdict-badge-icon"
+          >{% if sev == 'sev-mal' %}&#9888;{% elif sev == 'sev-sus' %}&#9679;{%
+          else %}&#10003;{% endif %}</span
+        >
+        {{ v.label }}
+      </span>
     </div>
     <details class="dl-menu">
       <summary>Download</summary>
       <div class="dl-menu-body">
-        <a href="{{ url_for('download', stem=stem, fmt='json') }}">Full report &middot; JSON</a>
-        <a href="{{ url_for('download', stem=stem, fmt='markdown') }}">Full report &middot; Markdown</a>
-        <a href="{{ url_for('download', stem=stem, fmt='blocklist') }}">Blocklist &middot; CSV</a>
-        <a href="{{ url_for('download', stem=stem, fmt='clamlog') }}">ClamAV raw log</a>
+        <a href="{{ url_for('download', stem=stem, fmt='json') }}"
+          >Full report &middot; JSON</a
+        >
+        <a href="{{ url_for('download', stem=stem, fmt='markdown') }}"
+          >Full report &middot; Markdown</a
+        >
+        <a href="{{ url_for('download', stem=stem, fmt='blocklist') }}"
+          >Blocklist &middot; CSV</a
+        >
+        <a href="{{ url_for('download', stem=stem, fmt='clamlog') }}"
+          >ClamAV raw log</a
+        >
       </div>
     </details>
+  </div>
+  <div class="score-meter-row">
+    <div class="score-meter">
+      <div
+        class="score-meter-fill {{ sev }}"
+        style="width: {{ score_pct }}%"
+      ></div>
+    </div>
+    <span class="score-meter-label">score {{ v.score }}</span>
   </div>
   <div class="verdict-file">{{ r.file.name }}</div>
   {% if v.reasons %}
   <ul class="verdict-reasons">
-    {% for reason in v.reasons %}<li>{{ reason }}</li>{% endfor %}
+    {% for reason in v.reasons %}
+    <li>{{ reason }}</li>
+    {% endfor %}
   </ul>
   {% endif %}
 </div>
@@ -33,7 +54,9 @@
 <section class="panel panel-escalate">
   <h2>Escalate to external vendor</h2>
   <ul>
-    {% for reason in v.escalation_reasons %}<li>{{ reason }}</li>{% endfor %}
+    {% for reason in v.escalation_reasons %}
+    <li>{{ reason }}</li>
+    {% endfor %}
   </ul>
 </section>
 {% endif %}
@@ -51,8 +74,9 @@
       <span class="mono muted">{{ r.hashes.sha1 }}</span>
     </div>
     <div class="overview-meta">
-      {{ r.file.size }} bytes &middot; {{ r.file.type }} &middot; entropy {{ "%.2f"|format(r.file.entropy) }}
-      &middot; analyzed {{ r.generated_utc }} UTC
+      {{ r.file.size }} bytes &middot; {{ r.file.type }} &middot; entropy {{
+      "%.2f"|format(r.file.entropy) }} &middot; analyzed {{ r.generated_utc }}
+      UTC
     </div>
   </div>
 
@@ -60,33 +84,62 @@
     <div class="stat">
       <span class="stat-label">ClamAV</span>
       {% if not r.clamav.available %}
-        <span class="stat-value muted">n/a</span>
+      <span class="stat-value muted">n/a</span>
       {% elif r.clamav.detections %}
-        <span class="stat-value stat-bad">{{ r.clamav.detections[0] }}</span>
+      <span class="stat-value stat-bad">{{ r.clamav.detections[0] }}</span>
       {% else %}
-        <span class="stat-value stat-ok">clean</span>
+      <span class="stat-value stat-ok">clean</span>
       {% endif %}
     </div>
     <div class="stat">
       <span class="stat-label">YARA</span>
       {% if not r.yara.available %}
-        <span class="stat-value muted">n/a</span>
+      <span class="stat-value muted">n/a</span>
       {% elif r.yara.matches %}
-        <span class="stat-value stat-bad">{{ r.yara.matches|length }} rule{{ 's' if r.yara.matches|length != 1 }}</span>
+      <span class="stat-value stat-bad"
+        >{{ r.yara.matches|length }} rule{{ 's' if r.yara.matches|length != 1
+        }}</span
+      >
       {% else %}
-        <span class="stat-value stat-ok">no match</span>
+      <span class="stat-value stat-ok">no match</span>
       {% endif %}
     </div>
     <div class="stat">
       <span class="stat-label">VirusTotal</span>
-      {% if r.virustotal.status == 'found' %}
-        <span class="stat-value {{ 'stat-bad' if r.virustotal.stats.malicious else 'stat-ok' }}">
-          {{ r.virustotal.stats.malicious|default(0) }}/{{ r.virustotal.total_engines }}
+      {% if r.virustotal.status == 'found' and vt_ring %}
+      <div class="vt-ring-wrap">
+        <svg width="44" height="44" viewBox="0 0 44 44" class="vt-ring">
+          <circle
+            cx="22"
+            cy="22"
+            r="20"
+            fill="none"
+            stroke="var(--border)"
+            stroke-width="4"
+          />
+          <circle
+            cx="22"
+            cy="22"
+            r="20"
+            fill="none"
+            stroke="{{ vt_ring.color }}"
+            stroke-width="4"
+            stroke-dasharray="{{ vt_ring.dash }} {{ vt_ring.circumference }}"
+            stroke-linecap="round"
+            transform="rotate(-90 22 22)"
+          />
+        </svg>
+        <span
+          class="stat-value {{ 'stat-bad' if r.virustotal.stats.malicious else 'stat-ok' }}"
+        >
+          {{ r.virustotal.stats.malicious|default(0) }}/{{
+          r.virustotal.total_engines }}
         </span>
+      </div>
       {% elif r.virustotal.status == 'not_found' %}
-        <span class="stat-value muted">unseen</span>
+      <span class="stat-value muted">unseen</span>
       {% else %}
-        <span class="stat-value muted">skipped</span>
+      <span class="stat-value muted">skipped</span>
       {% endif %}
     </div>
   </div>
@@ -100,49 +153,67 @@
     <li>
       <span class="yara-rule">{{ m.rule }}</span>
       <span class="tag tag-{{ m.severity }}">{{ m.severity }}</span>
-      {% if m.description %}<div class="yara-desc">{{ m.description }}</div>{% endif %}
+      {% if m.description %}
+      <div class="yara-desc">{{ m.description }}</div>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
 </section>
-{% endif %}
-
-{% if r.virustotal.status == 'found' and r.virustotal.stats.malicious %}
+{% endif %} {% if r.virustotal.status == 'found' and
+r.virustotal.stats.malicious %}
 <section class="panel">
   <h2>VirusTotal</h2>
-  {% if r.virustotal.threat_label %}<p class="muted" style="margin:0 0 8px">{{ r.virustotal.threat_label }}</p>{% endif %}
-  <a class="dl-link" href="{{ r.virustotal.link }}" target="_blank" rel="noopener">View on VirusTotal &#8599;</a>
+  {% if r.virustotal.threat_label %}
+  <p class="muted" style="margin: 0 0 8px">{{ r.virustotal.threat_label }}</p>
+  {% endif %}
+  <a
+    class="dl-link"
+    href="{{ r.virustotal.link }}"
+    target="_blank"
+    rel="noopener"
+    >View on VirusTotal &#8599;</a
+  >
 </section>
-{% endif %}
-
-{% set has_iocs = r.iocs.ips_public or r.iocs.ips_internal or r.iocs.domains or r.iocs.urls or r.iocs.emails %}
-{% if has_iocs %}
+{% endif %} {% set has_iocs = r.iocs.ips_public or r.iocs.ips_internal or
+r.iocs.domains or r.iocs.urls or r.iocs.emails %} {% if has_iocs %}
 <section class="panel">
   <h2>Extracted indicators</h2>
-  {% for label, key in [("Public IP","ips_public"), ("Internal IP","ips_internal"), ("Domain","domains"), ("URL","urls"), ("Email","emails")] %}
-    {% if r.iocs[key] %}
-    <div class="chip-row">
-      <span class="chip-row-label">{{ label }}{{ 's' if r.iocs[key]|length != 1 }}</span>
-      <div class="chip-wrap">
-        {% for x in r.iocs[key] %}<span class="chip mono">{{ x }}</span>{% endfor %}
-      </div>
+  {% for label, key in [("Public IP","ips_public"), ("Internal
+  IP","ips_internal"), ("Domain","domains"), ("URL","urls"), ("Email","emails")]
+  %} {% if r.iocs[key] %}
+  <div class="chip-row">
+    <span class="chip-row-label"
+      >{{ label }}{{ 's' if r.iocs[key]|length != 1 }}</span
+    >
+    <div class="chip-wrap">
+      {% for x in r.iocs[key] %}<span class="chip mono">{{ x }}</span>{% endfor
+      %}
     </div>
-    {% endif %}
-  {% endfor %}
+  </div>
+  {% endif %} {% endfor %}
 </section>
-{% endif %}
-
-{% if blocklist_rows %}
+{% endif %} {% if blocklist_rows %}
 <section class="panel">
   <h2>Blocklist candidates</h2>
   <table class="data-table">
-    <thead><tr><th>Type</th><th>Value</th><th>Confidence</th><th>Source</th><th>Action</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Value</th>
+        <th>Confidence</th>
+        <th>Source</th>
+        <th>Action</th>
+      </tr>
+    </thead>
     <tbody>
       {% for row in blocklist_rows %}
       <tr>
         <td>{{ row.type }}</td>
         <td class="mono">{{ row.value }}</td>
-        <td><span class="tag tag-{{ row.confidence }}">{{ row.confidence }}</span></td>
+        <td>
+          <span class="tag tag-{{ row.confidence }}">{{ row.confidence }}</span>
+        </td>
         <td>{{ row.source }}</td>
         <td>{{ row.recommended_action }}</td>
       </tr>
@@ -155,55 +226,75 @@
 <details class="panel tech-details">
   <summary>Technical details &amp; raw strings</summary>
   <div class="tech-body">
-
     {% if r.suspicious_apis %}
     <h3>Suspicious API strings</h3>
     {% for cat, apis in r.suspicious_apis.items() %}
     <div class="api-row">
-      <span class="api-cat">{{ cat.replace('_',' ').replace('/', ' / ') }}</span>
+      <span class="api-cat"
+        >{{ cat.replace('_',' ').replace('/', ' / ') }}</span
+      >
       <span class="mono api-names">{{ apis|join(', ') }}</span>
     </div>
-    {% endfor %}
-    {% endif %}
-
-    {% if r.hints %}
-    <h3>Dynamic-only IOC hints <span class="muted small">(unconfirmed, static only)</span></h3>
+    {% endfor %} {% endif %} {% if r.hints %}
+    <h3>
+      Dynamic-only IOC hints
+      <span class="muted small">(unconfirmed, static only)</span>
+    </h3>
     {% for cat, vals in r.hints.items() %}
     <div class="api-row">
       <span class="api-cat">{{ cat.replace('_',' ') }}</span>
       <span class="mono api-names">{{ vals|join(', ') }}</span>
     </div>
-    {% endfor %}
-    {% endif %}
-
-    {% if r.pe and r.pe.parsed %}
+    {% endfor %} {% endif %} {% if r.pe and r.pe.parsed %}
     <h3>PE details</h3>
     <table class="kv">
-      <tr><th>Compile time</th><td>{{ r.pe.compile_time }}</td></tr>
-      <tr><th>Imphash</th><td class="mono">{{ r.pe.imphash }}</td></tr>
-      <tr><th>Imports</th><td>{{ r.pe.import_count }}</td></tr>
+      <tr>
+        <th>Compile time</th>
+        <td>{{ r.pe.compile_time }}</td>
+      </tr>
+      <tr>
+        <th>Imphash</th>
+        <td class="mono">{{ r.pe.imphash }}</td>
+      </tr>
+      <tr>
+        <th>Imports</th>
+        <td>{{ r.pe.import_count }}</td>
+      </tr>
     </table>
     <table class="data-table">
-      <thead><tr><th>Section</th><th>Raw size</th><th>Entropy</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Section</th>
+          <th>Raw size</th>
+          <th>Entropy</th>
+        </tr>
+      </thead>
       <tbody>
         {% for s in r.pe.sections %}
         <tr class="{{ 'hot-row' if s.entropy > 7.2 else '' }}">
-          <td class="mono">{{ s.name }}</td><td>{{ s.raw_size }}</td><td>{{ s.entropy }}</td>
+          <td class="mono">{{ s.name }}</td>
+          <td>{{ s.raw_size }}</td>
+          <td>{{ s.entropy }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    {% endif %}
-
-    {% if not r.clamav.available or not r.yara.available %}
+    {% endif %} {% if not r.clamav.available or not r.yara.available %}
     <h3>Scanner availability</h3>
-    {% if not r.clamav.available %}<p class="muted small">ClamAV: not available on this host.</p>{% endif %}
-    {% if not r.yara.available %}<p class="muted small">YARA: {{ r.yara.error }}</p>{% endif %}
-    {% endif %}
+    {% if not r.clamav.available %}
+    <p class="muted small">ClamAV: not available on this host.</p>
+    {% endif %} {% if not r.yara.available %}
+    <p class="muted small">YARA: {{ r.yara.error }}</p>
+    {% endif %} {% endif %}
 
-    <h3>Strings ({{ r.strings_total }} total, showing {{ r.strings_preview|length }})</h3>
-    <pre class="mono strings-block">{% for s in r.strings_preview %}{{ s }}
-{% endfor %}</pre>
+    <h3>
+      Strings ({{ r.strings_total }} total, showing {{ r.strings_preview|length
+      }})
+    </h3>
+    <pre class="mono strings-block">
+{% for s in r.strings_preview %}{{ s }}
+{% endfor %}</pre
+    >
   </div>
 </details>
 
