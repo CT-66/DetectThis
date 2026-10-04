@@ -1,83 +1,62 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}DetectThis &middot; static malware triage{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<div class="shell">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      {% block title %}DetectThis &middot; static malware triage{% endblock %}
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail {{ '' if reports else 'rail-collapsed' }}">
+        <div class="queue">
+          {% if stem is defined %}
+          <a class="rail-back" href="{{ url_for('index') }}"
+            >&larr; Back to overview</a
+          >
+          {% endif %}
+          <div class="queue-head">Queue &middot; {{ reports|length }}</div>
+          <ol class="queue-list">
+            {% for item in reports %}
+            <li>
+              <a
+                href="{{ url_for('report_detail', stem=item.stem) }}"
+                class="queue-item {{ 'is-active' if stem is defined and stem == item.stem else '' }}"
+              >
+                <span class="q-stripe {{ item.label|sevclass }}"></span>
+                <span class="q-body">
+                  <span class="q-name">{{ item.name }}</span>
+                  <span class="q-meta">{{ item.label }}</span>
+                </span>
+              </a>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </aside>
 
-  <aside class="rail">
-    <div class="brand">
-      <div class="brand-mark">DT</div>
-      <div class="brand-text">
-        <div class="brand-name">DetectThis</div>
-        <div class="brand-sub">Static malware triage</div>
-      </div>
-    </div>
-
-    <div class="status-row">
-      <span class="pill {{ 'pill-on' if status.clamav else 'pill-off' }}">ClamAV</span>
-      <span class="pill {{ 'pill-on' if status.yara else 'pill-off' }}">YARA</span>
-      <span class="pill {{ 'pill-on' if vt_configured else 'pill-off' }}">VirusTotal</span>
-    </div>
-
-    <form class="upload-form" action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data">
-      <label class="dropzone" id="dropzone" for="sample-input">
-        <span class="dz-title">Drop a sample here</span>
-        <span class="dz-sub" id="dz-filename">or click to choose a file</span>
-      </label>
-      <input id="sample-input" type="file" name="sample" hidden required>
-
-      <label class="mode-toggle">
-        <input type="checkbox" name="mode" value="offline" {{ 'checked' if not vt_configured else '' }} {{ 'disabled' if not vt_configured else '' }}>
-        <span>Offline mode (skip VirusTotal)</span>
-      </label>
-
-      <button type="submit" class="btn-primary">Analyze sample</button>
-      <p class="rail-note">File bytes are read only. Nothing here executes the sample.</p>
-    </form>
-
-    <div class="queue">
-      <div class="queue-head">Queue &middot; {{ reports|length }}</div>
-      <ol class="queue-list">
-        {% for item in reports %}
-        <li>
-          <a href="{{ url_for('report_detail', stem=item.stem) }}"
-             class="queue-item {{ 'is-active' if stem is defined and stem == item.stem else '' }}">
-            <span class="q-stripe {{ item.label|sevclass }}"></span>
-            <span class="q-body">
-              <span class="q-name">{{ item.name }}</span>
-              <span class="q-meta">{{ item.label }}</span>
-            </span>
-          </a>
-        </li>
-        {% else %}
-        <li class="queue-empty">No samples analyzed yet.</li>
-        {% endfor %}
-      </ol>
-    </div>
-  </aside>
-
-  <main class="main">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
+      <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
         <div class="flash-stack">
           {% for category, msg in messages %}
-            <div class="flash flash-{{ category }}">{{ msg }}</div>
+          <div class="flash flash-{{ category }}">{{ msg }}</div>
           {% endfor %}
         </div>
-      {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </main>
-
-</div>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
+        {% endif %} {% endwith %} {% block content %}{% endblock %}
+      </main>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
 </html>

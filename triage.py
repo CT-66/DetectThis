@@ -315,6 +315,7 @@ class VirusTotal:
                 "link": f"https://www.virustotal.com/gui/file/{sha256}",
             }
         self.cache[sha256] = result
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
         self.cache_path.write_text(json.dumps(self.cache, indent=2))
         time.sleep(self.delay)  # free tier: 4 requests/minute
         return {**result, "cached": False}
