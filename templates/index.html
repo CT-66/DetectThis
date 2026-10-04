@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="empty-state">
+  <div class="empty-mark">&#8942;</div>
+  <h1>Nothing selected</h1>
+  <p>Upload a suspicious file from the left, or pick a past run from the queue,
+     to see its hashes, scan results, and extracted indicators.</p>
+  <p class="empty-hint">Static analysis only &mdash; ClamAV signatures, YARA rules,
+     string/IOC extraction, and a VirusTotal hash lookup. The sample is never executed.</p>
+</div>
+{% endblock %}
