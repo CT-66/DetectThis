@@ -19,9 +19,6 @@ It can be used with two interfaces, both based on the same engine: a CLI (`triag
   </tr>
 </table>
 
-
-
-
 ## Important
 
 - This tool is for **static analysis only**. It does not sandbox or detonate
