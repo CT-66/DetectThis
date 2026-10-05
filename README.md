@@ -8,6 +8,20 @@ Nothing is executed, only the sample's bytes are read.
 It can be used with two interfaces, both based on the same engine: a CLI (`triage.py`) and a local Flask dashboard
 (`app.py`) for browsing results in a browser with a neat dashboard.
 
+<table>
+  <tr>
+    <td><video src="https://github.com/user-attachments/assets/6245e922-4676-4c9a-8c39-3293f6c516b3" alt="Flask Dashboard" width="1000"/></td>
+    <td><video src="https://github.com/user-attachments/assets/40983356-cbea-4ce6-b76d-2bc99ade77b0" alt="CLI" width="1000"/></td>
+  </tr>
+  <tr>
+    <td align="center">Flask Dashboard</td>
+    <td align="center">CLI (Core Engine)</td>
+  </tr>
+</table>
+
+
+
+
 ## Important
 
 - This tool is for **static analysis only**. It does not sandbox or detonate
