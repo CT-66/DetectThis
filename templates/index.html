@@ -9,7 +9,7 @@
 
   <p class="hero-summary">
     <strong>Static analysis only.</strong> ClamAV signatures, YARA rules, string/IOC extraction, and a
-    VirusTotal hash lookup &mdash; the sample's bytes are never executed at any stage.
+    VirusTotal hash lookup. The files are never actually executed.
   </p>
 
   <form class="hero-upload-form" action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data">
