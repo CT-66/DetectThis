@@ -19,7 +19,7 @@
   </head>
   <body>
     <div class="shell">
-      <aside class="rail {{ '' if reports else 'rail-collapsed' }}">
+      <aside class="rail">
         <div class="queue">
           {% if stem is defined %}
           <a class="rail-back" href="{{ url_for('index') }}"
@@ -27,6 +27,7 @@
           >
           {% endif %}
           <div class="queue-head">Queue &middot; {{ reports|length }}</div>
+          {% if reports %}
           <ol class="queue-list">
             {% for item in reports %}
             <li>
@@ -43,6 +44,12 @@
             </li>
             {% endfor %}
           </ol>
+          {% else %}
+          <div class="queue-empty">
+            <p>No samples analyzed yet.</p>
+            <p class="muted small">Uploaded files will appear here.</p>
+          </div>
+          {% endif %}
         </div>
       </aside>
 
